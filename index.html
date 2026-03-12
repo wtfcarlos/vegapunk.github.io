@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEGAPUNK</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&family=Outfit:wght@900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --text-dim: rgba(255,255,255,0.04);
+    --text-hover: rgba(220,60,90,0.35);
+    --accent: #dc3c5a;
+    --white: #f0ece6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    font-family: 'Outfit', sans-serif;
+    cursor: crosshair;
+  }
+
+  /* ─── Diagonal background VEGA grid ─── */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .bg-diagonal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250vmax;
+    height: 250vmax;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: all;
+  }
+
+  .bg-row {
+    display: flex;
+    gap: 40px;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .bg-word {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--text-dim);
+    letter-spacing: 0.15em;
+    transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+    user-select: none;
+    line-height: 1.15;
+    position: relative;
+  }
+
+  .bg-word .swap {
+    display: inline;
+    transition: opacity 0.25s ease;
+  }
+
+  .bg-word .punk-text {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    color: var(--accent);
+  }
+
+  .bg-word:hover {
+    color: transparent;
+    text-shadow: 0 0 40px rgba(220,60,90,0.3);
+    transform: scale(1.05);
+  }
+
+  .bg-word:hover .vega-text {
+    opacity: 0;
+  }
+
+  .bg-word:hover .punk-text {
+    opacity: 1;
+    text-shadow: 0 0 30px rgba(220,60,90,0.5);
+  }
+
+  /* ─── Center hero ─── */
+  .hero {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .hero-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    pointer-events: auto;
+  }
+
+  .hero-line {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(60px, 12vw, 180px);
+    letter-spacing: 0.08em;
+    line-height: 0.85;
+    color: var(--white);
+    text-shadow: 0 0 80px rgba(220,60,90,0.15);
+    position: relative;
+  }
+
+  .hero-line.vega {
+    transform: translateX(-0.15em);
+    animation: slideInVega 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  .hero-line.punk {
+    transform: translateX(0.15em);
+    animation: slideInPunk 1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    opacity: 0;
+  }
+
+  @keyframes slideInVega {
+    0% { opacity: 0; transform: translateX(-1em); }
+    100% { opacity: 1; transform: translateX(-0.15em); }
+  }
+
+  @keyframes slideInPunk {
+    0% { opacity: 0; transform: translateX(1em); }
+    100% { opacity: 1; transform: translateX(0.15em); }
+  }
+
+  /* Subtle accent line between VEGA and PUNK */
+  .hero-text::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    width: 120%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.2;
+    animation: lineFade 1.5s ease 0.8s forwards;
+    opacity: 0;
+  }
+
+  @keyframes lineFade {
+    to { opacity: 0.2; }
+  }
+
+  /* ─── Scanline overlay ─── */
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
+
+  /* ─── Vignette ─── */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
+  }
+
+  /* ─── Noise texture ─── */
+  .noise {
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    pointer-events: none;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+  }
+
+  /* ─── Bottom tag ─── */
+  .tag {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 25;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: rgba(240,236,230,0.15);
+    animation: tagIn 1s ease 1.2s forwards;
+    opacity: 0;
+  }
+
+  @keyframes tagIn {
+    to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <div class="bg-diagonal" id="bgGrid"></div>
+</div>
+
+<div class="hero">
+  <div class="hero-text">
+    <span class="hero-line vega">VEGA</span>
+    <span class="hero-line punk">PUNK</span>
+  </div>
+</div>
+
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<canvas class="noise" id="noise"></canvas>
+
+<div class="tag">Coming Soon</div>
+
+<script>
+  // Generate diagonal VEGA grid
+  const grid = document.getElementById('bgGrid');
+  const rows = 60;
+  const wordsPerRow = 18;
+
+  for (let r = 0; r < rows; r++) {
+    const row = document.createElement('div');
+    row.className = 'bg-row';
+    for (let w = 0; w < wordsPerRow; w++) {
+      const word = document.createElement('span');
+      word.className = 'bg-word';
+      word.innerHTML = '<span class="vega-text swap">VEGA</span><span class="punk-text swap">PUNK</span>';
+      row.appendChild(word);
+    }
+    grid.appendChild(row);
+  }
+
+  // Noise canvas
+  const canvas = document.getElementById('noise');
+  const ctx = canvas.getContext('2d');
+
+  function resizeNoise() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function drawNoise() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const imageData = ctx.createImageData(w, h);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const v = Math.random() * 255;
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+      data[i + 3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  resizeNoise();
+  drawNoise();
+  window.addEventListener('resize', () => { resizeNoise(); drawNoise(); });
+
+  // Regenerate noise slowly for subtle movement
+  setInterval(drawNoise, 150);
+</script>
+
+</body>
+</html>
